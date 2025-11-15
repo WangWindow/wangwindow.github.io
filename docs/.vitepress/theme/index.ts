@@ -1,17 +1,22 @@
 // https://vitepress.dev/guide/custom-theme
-import { h } from 'vue'
-import type { Theme } from 'vitepress'
+import { h, type App } from 'vue'
 import DefaultTheme from 'vitepress/theme'
+import type { Theme } from 'vitepress'
+import DemoCounter from './components/DemoCounter.vue'
+import NowTime from './components/NowTime.vue'
 import './style.css'
 
-export default {
+const theme: Theme = {
   extends: DefaultTheme,
   Layout: () => {
     return h(DefaultTheme.Layout, null, {
-      // https://vitepress.dev/guide/extending-default-theme#layout-slots
+      // 可以在这里自定义布局插槽
     })
   },
-  enhanceApp({ app, router, siteData }) {
-    // ...
+  enhanceApp({ app }: { app: App }) {
+    app.component('DemoCounter', DemoCounter)
+    app.component('NowTime', NowTime)
   }
-} satisfies Theme
+}
+
+export default theme
