@@ -1,0 +1,31 @@
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
+import { glob } from "astro/loaders";
+import { SITE } from "@/config";
+
+export const BLOG_PATH = "src/data/blog/posts";
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/[^_]*.md", base: `./${BLOG_PATH}` }),
+  schema: ({ image }) =>
+    z.object({
+      author: z.string().default(SITE.author),
+      // Support both 'date' (new format) and 'pubDatetime' (legacy)
+      pubDatetime: z.date().optional(),
+      date: z.date().optional(),
+      modDatetime: z.date().optional().nullable(),
+      updated: z.date().optional().nullable(),
+      title: z.string(),
+      featured: z.boolean().optional(),
+      draft: z.boolean().optional(),
+      tags: z.array(z.string()).default(["others"]),
+      cover: image().or(z.string()).optional(),
+      ogImage: image().or(z.string()).optional(),
+      description: z.string(),
+      canonicalURL: z.string().optional(),
+      hideEditPost: z.boolean().optional(),
+      timezone: z.string().optional(),
+    }),
+});
+
+export const collections = { blog };

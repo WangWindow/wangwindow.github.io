@@ -1,0 +1,38 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getPath } from "@/utils/getPath";
+import { getPubDate } from "@/utils/dateCompat";
+
+type Props = {
+    post: CollectionEntry<"blog">;
+};
+
+const { post } = Astro.props;
+const href = getPath(post.id, post.filePath);
+const pubDate = getPubDate(post.data);
+const dateLabel = `${pubDate.getFullYear()}-${String(pubDate.getMonth() + 1).padStart(2, "0")}-${String(pubDate.getDate()).padStart(2, "0")}`;
+---
+
+<li
+    class="relative grid gap-2 rounded-lg border border-border/80 bg-background px-3 py-2 text-sm"
+>
+    <span
+        class="absolute top-2 left-[-0.9rem] h-2 w-2 rounded-full border border-border bg-background"
+        aria-hidden="true"></span>
+
+    <div class="grid min-w-0 content-center gap-0.5">
+        <time
+            class="text-sm text-foreground/60 sm:text-base"
+            datetime={pubDate.toISOString()}>{dateLabel}</time
+        >
+        <a
+            class="truncate text-base sm:text-lg md:text-xl font-semibold leading-snug text-foreground transition-colors hover:text-accent"
+            href={href}
+        >
+            {post.data.title}
+        </a>
+        <p class="mt-0.5 text-xs text-foreground/60">
+            {post.data.tags.join("/")}
+        </p>
+    </div>
+</li>

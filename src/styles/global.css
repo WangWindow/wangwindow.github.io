@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "./typography.css";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root,
+html[data-theme="light"] {
+  --background: #fdfdfd;
+  --foreground: #282728;
+  --accent: #006cac;
+  --muted: #e6e6e6;
+  --border: #ece9e9;
+}
+
+html[data-theme="dark"] {
+  --background: #212737;
+  --foreground: #eaedf3;
+  --accent: #ff6b01;
+  --muted: #343f60;
+  --border: #ab4b08;
+}
+
+@theme inline {
+  --font-app: var(--font-google-sans-code);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-accent/75;
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-muted) transparent;
+  }
+
+  html {
+    @apply overflow-y-scroll scroll-smooth;
+  }
+
+  body {
+    @apply flex min-h-svh flex-col bg-background font-app text-foreground selection:bg-accent/75 selection:text-background;
+  }
+
+  a,
+  button {
+    @apply outline-offset-1 outline-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Normalize Iconify alignment across text, buttons and nav items */
+  iconify-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .icon-label {
+    @apply inline-flex items-center gap-2 leading-none;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+@utility max-w-app {
+  @apply max-w-3xl;
+}
+
+@utility app-layout {
+  @apply mx-auto w-full max-w-app px-4;
+}
+
+.active-nav {
+  @apply underline decoration-wavy decoration-2 underline-offset-8;
+}
+
+/* Alternate post card media position on desktop */
+.post-card:nth-child(even) .post-card__media {
+  @apply md:order-2;
+}
+
+.post-card:nth-child(even) .post-card__content {
+  @apply md:order-1;
+}
+
+/* Responsive cover media: crop consistently to avoid empty areas */
+.post-card .post-card__media {
+  @apply relative overflow-hidden bg-muted/35 aspect-video sm:aspect-3/2 md:aspect-auto md:min-h-56;
+}
+
+.post-card .post-card__media img {
+  @apply block h-full w-full object-cover object-center;
+}
+
+/* Source: https://piccalil.li/blog/a-more-modern-css-reset/ */
+/* Anything that has been anchored to should have extra scroll margin */
+:target {
+  scroll-margin-block: 1rem;
+}

@@ -1,0 +1,3 @@
+[submodule "src/data/blog"]
+	path = src/data/blog
+	url = https://github.com/WangWindow/Blogs.git

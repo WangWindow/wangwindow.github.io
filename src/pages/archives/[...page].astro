@@ -1,0 +1,72 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Main from "@/layouts/Main.astro";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Pagination from "@/components/Pagination.astro";
+import ArchiveTimelineItem from "@/components/ArchiveTimelineItem.astro";
+import getSortedPosts from "@/utils/getSortedPosts";
+import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
+import { SITE } from "@/config";
+
+export const getStaticPaths = (async ({ paginate }) => {
+    if (!SITE.showArchives) {
+        return [];
+    }
+
+    const posts = await getCollection("blog", ({ data }) => !data.draft);
+    return paginate(getSortedPosts(posts), { pageSize: SITE.archivesPerPage });
+}) satisfies GetStaticPaths;
+
+if (!SITE.showArchives) {
+    return Astro.redirect("/404");
+}
+
+const { page } = Astro.props;
+const postsByYear = Object.entries(
+    getPostsByGroupCondition(page.data, (post) => {
+        const pubDate = post.data.pubDatetime ?? post.data.date ?? new Date();
+        return pubDate.getFullYear();
+    }),
+).sort(([yearA], [yearB]) => Number(yearB) - Number(yearA));
+---
+
+<Layout title={`Archives | ${SITE.title}`}>
+    <Header />
+    <Main pageTitle="Archives" pageDesc="All the articles I've archived.">
+        <div class="grid gap-5">
+            {
+                postsByYear.map(([year, yearPosts]) => (
+                    <section
+                        class="rounded-2xl border border-border bg-background/70 p-4 sm:p-5"
+                        aria-label={`Archive ${year}`}
+                    >
+                        <div class="mb-2.5 flex items-center gap-2">
+                            <span class="inline-flex items-center rounded-md bg-accent px-2.5 py-0.5 text-xs font-bold tracking-wide text-background">
+                                {year}
+                            </span>
+                            <span class="text-sm text-foreground/60">
+                                {yearPosts.length}
+                            </span>
+                        </div>
+
+                        <ol
+                            class="relative m-0 list-none divide-y divide-dashed divide-border/80 ps-9 before:absolute before:top-2 before:bottom-2 before:left-2 before:w-0.5 before:bg-border/85 before:content-['']"
+                            role="list"
+                        >
+                            {yearPosts.map((post) => (
+                                <ArchiveTimelineItem post={post} />
+                            ))}
+                        </ol>
+                    </section>
+                ))
+            }
+        </div>
+    </Main>
+
+    <Pagination {page} />
+
+    <Footer noMarginTop={page.lastPage > 1} />
+</Layout>

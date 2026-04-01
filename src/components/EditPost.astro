@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { SITE } from "@/config";
+
+type Props = {
+  hideEditPost?: CollectionEntry<"blog">["data"]["hideEditPost"];
+  class?: string;
+  post: CollectionEntry<"blog">;
+};
+
+const { hideEditPost, post, class: className = "" } = Astro.props;
+
+const href = `${SITE.editPost.url}${post.filePath}`;
+const showEditPost =
+  SITE.editPost.enabled && !hideEditPost && href.trim() !== "";
+---
+
+{
+  showEditPost && (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      class:list={["icon-label opacity-80 hover:text-accent", className]}
+    >
+      <iconify-icon icon="tabler:edit" class="size-4" />
+      <span>{SITE.editPost.text}</span>
+    </a>
+  )
+}

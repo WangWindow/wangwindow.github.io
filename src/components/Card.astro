@@ -1,0 +1,93 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+import { slugifyStr } from "@/utils/slugify";
+import { getPath } from "@/utils/getPath";
+import Datetime from "./Datetime.astro";
+import { resolvePostCoverSource, resolvePostImageUrl } from "@/utils/postCover";
+import { getPubDate, getModDate } from "@/utils/dateCompat";
+
+type Props = {
+  variant?: "h2" | "h3";
+} & CollectionEntry<"blog">;
+
+const { variant: Heading = "h2", id, data, filePath } = Astro.props;
+
+const { title, description } = data;
+const pubDatetime = getPubDate(data);
+const modDatetime = getModDate(data);
+const timezone = data.timezone;
+
+const coverAsset = typeof data.cover === "string" ? undefined : data.cover;
+const coverSrc = resolvePostCoverSource(Astro.props);
+const coverUrl = coverSrc
+  ? resolvePostImageUrl(Astro.props, coverSrc)
+  : undefined;
+const hasCover = Boolean(coverAsset || coverUrl);
+---
+
+<li class="post-card my-6">
+  <article
+    class="overflow-hidden rounded-xl border border-border/90 bg-muted/20 md:grid md:grid-cols-12 md:items-stretch h-55"
+  >
+    {
+      coverAsset ? (
+        <a
+          href={getPath(id, filePath)}
+          aria-label={`Read ${title}`}
+          class="post-card__media hidden md:block md:col-span-5"
+        >
+          <Image
+            src={coverAsset}
+            alt={`${title} cover`}
+            format="webp"
+            class="h-full w-full object-cover object-center"
+            widths={[480, 720, 960]}
+            sizes="(max-width: 768px) 100vw, 520px"
+          />
+        </a>
+      ) : (
+        coverUrl && (
+          <a
+            href={getPath(id, filePath)}
+            aria-label={`Read ${title}`}
+            class="post-card__media hidden md:block md:col-span-5"
+          >
+            <img
+              src={coverUrl}
+              alt={`${title} cover`}
+              class="h-full w-full object-cover object-center"
+              loading="lazy"
+            />
+          </a>
+        )
+      )
+    }
+
+    <div
+      class:list={[
+        "post-card__content flex h-full flex-col justify-between p-5",
+        { "md:col-span-7": hasCover, "md:col-span-12": !hasCover },
+      ]}
+    >
+      <a
+        href={getPath(id, filePath)}
+        class:list={[
+          "inline-block text-lg font-medium text-accent",
+          "decoration-dashed underline-offset-4 hover:underline",
+          "focus-visible:no-underline focus-visible:underline-offset-0",
+        ]}
+      >
+        <Heading
+          style={{ viewTransitionName: slugifyStr(title.replaceAll(".", "-")) }}
+        >
+          {title}
+        </Heading>
+      </a>
+      <Datetime {pubDatetime} {modDatetime} {timezone} class="mt-2" />
+      <p class="mt-2 line-clamp-3 overflow-hidden text-ellipsis">
+        {description}
+      </p>
+    </div>
+  </article>
+</li>
