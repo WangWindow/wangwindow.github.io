@@ -1,5 +1,5 @@
 import type { CollectionEntry } from "astro:content";
-import { getPath } from "@/utils/getPath";
+import { getPath } from "@utils/getPath";
 
 const MARKDOWN_IMAGE_REGEX =
     /!\[[^\]]*\]\((<[^>]+>|[^)\s]+)(?:\s+["'][^"']*["'])?\)/;

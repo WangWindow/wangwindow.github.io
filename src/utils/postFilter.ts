@@ -1,5 +1,5 @@
 import type { CollectionEntry } from "astro:content";
-import { SITE } from "@/config";
+import { SITE } from "@config";
 import { getPubDate } from "./dateCompat";
 
 const postFilter = ({ data }: CollectionEntry<"blog">) => {

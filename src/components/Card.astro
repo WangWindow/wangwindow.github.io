@@ -1,11 +1,11 @@
 ---
 import { Image } from "astro:assets";
 import type { CollectionEntry } from "astro:content";
-import { slugifyStr } from "@/utils/slugify";
-import { getPath } from "@/utils/getPath";
+import { slugifyStr } from "@utils/slugify";
+import { getPath } from "@utils/getPath";
 import Datetime from "./Datetime.astro";
-import { resolvePostCoverSource, resolvePostImageUrl } from "@/utils/postCover";
-import { getPubDate, getModDate } from "@/utils/dateCompat";
+import { resolvePostCoverSource, resolvePostImageUrl } from "@utils/postCover";
+import { getPubDate, getModDate } from "@utils/dateCompat";
 
 type Props = {
   variant?: "h2" | "h3";
