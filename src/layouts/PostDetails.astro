@@ -8,6 +8,7 @@ import Tag from "@components/Tag.astro";
 import Datetime from "@components/Datetime.astro";
 import EditPost from "@components/EditPost.astro";
 import ShareLinks from "@components/ShareLinks.astro";
+import Giscus from "@components/Giscus.astro";
 import BackButton from "@components/BackButton.astro";
 import BackToTopButton from "@components/BackToTopButton.astro";
 import { getPath } from "@utils/getPath";
@@ -159,6 +160,8 @@ const nextPost =
     <BackToTopButton />
 
     <ShareLinks />
+
+    <Giscus />
 
     <hr class="my-6 border-dashed" />
 
