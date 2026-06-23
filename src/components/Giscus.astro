@@ -37,7 +37,7 @@
     // Sync theme changes to Giscus
     var observer = new MutationObserver(function () {
       var iframe = document.querySelector(".giscus iframe");
-      if (iframe && iframe.contentWindow) {
+      if (iframe instanceof HTMLIFrameElement && iframe.contentWindow) {
         iframe.contentWindow.postMessage(
           { giscus: { setConfig: { theme: resolveGiscusTheme() } } },
           "https://giscus.app",
