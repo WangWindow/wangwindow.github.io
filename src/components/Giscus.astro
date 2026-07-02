@@ -1,0 +1,78 @@
+---
+import {
+  PUBLIC_GISCUS_CATEGORY,
+  PUBLIC_GISCUS_CATEGORY_ID,
+  PUBLIC_GISCUS_REPO,
+  PUBLIC_GISCUS_REPO_ID,
+} from "astro:env/client";
+---
+
+<div
+  class="giscus mt-12"
+  data-category={PUBLIC_GISCUS_CATEGORY}
+  data-category-id={PUBLIC_GISCUS_CATEGORY_ID}
+  data-pagefind-ignore
+  data-repo={PUBLIC_GISCUS_REPO}
+  data-repo-id={PUBLIC_GISCUS_REPO_ID}
+>
+</div>
+
+<script>
+  const giscusOrigin = "https://giscus.app";
+
+  function resolveGiscusTheme(): string {
+    return document.documentElement.getAttribute("data-theme") === "dark"
+      ? "dark"
+      : "light";
+  }
+
+  function syncGiscusTheme(): void {
+    const iframe = document.querySelector<HTMLIFrameElement>(".giscus iframe");
+    if (!iframe?.contentWindow) return;
+    iframe.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: resolveGiscusTheme() } } },
+      giscusOrigin,
+    );
+  }
+
+  function mountGiscus(): void {
+    const container = document.querySelector<HTMLDivElement>(".giscus");
+    if (!container || container.hasChildNodes()) return;
+    const { category, categoryId, repo, repoId } = container.dataset;
+    if (!category || !categoryId || !repo || !repoId) return;
+
+    const script = document.createElement("script");
+    const attributes: Record<string, string> = {
+      "data-category": category,
+      "data-category-id": categoryId,
+      "data-emit-metadata": "0",
+      "data-input-position": "bottom",
+      "data-lang": "zh-CN",
+      "data-loading": "lazy",
+      "data-mapping": "pathname",
+      "data-reactions-enabled": "1",
+      "data-repo": repo,
+      "data-repo-id": repoId,
+      "data-strict": "0",
+      "data-theme": resolveGiscusTheme(),
+    };
+
+    script.src = `${giscusOrigin}/client.js`;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    for (const [name, value] of Object.entries(attributes)) {
+      script.setAttribute(name, value);
+    }
+
+    container.appendChild(script);
+  }
+
+  const observer = new MutationObserver(syncGiscusTheme);
+  observer.observe(document.documentElement, {
+    attributeFilter: ["data-theme"],
+    attributes: true,
+  });
+
+  mountGiscus();
+  document.addEventListener("astro:after-swap", mountGiscus);
+</script>
