@@ -1,0 +1,28 @@
+---
+import PostList from "@/components/blog/PostList.astro";
+import { getAllPosts, groupPostsByYear } from "@/data/post";
+import PageLayout from "@/layouts/Base.astro";
+import { collectionDateSort } from "@/utils/date";
+
+const posts = (await getAllPosts()).sort(collectionDateSort);
+const postsByYear = groupPostsByYear(posts);
+const years = Object.keys(postsByYear).sort(
+  (first, second) => Number(second) - Number(first),
+);
+---
+
+<PageLayout meta={{ title: "Archive" }}>
+  <h1 class="title mb-12">Archive</h1>
+  <div class="space-y-14">
+    {
+      years.map((year) => (
+        <section aria-labelledby={`archive-${year}`}>
+          <h2 id={`archive-${year}`} class="title mb-5 text-xl">
+            {year}
+          </h2>
+          <PostList posts={postsByYear[year] ?? []} />
+        </section>
+      ))
+    }
+  </div>
+</PageLayout>

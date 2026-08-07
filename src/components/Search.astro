@@ -1,21 +1,246 @@
 ---
 import "@/styles/blocks/search.css";
+import { Icon } from "astro-icon/components";
+
+const bundlePath = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/pagefind/`;
 ---
 
-<script>
-  (() => {
-    if (import.meta.env.DEV) return;
-    const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-    onIdle(async () => {
-      await import("@pagefind/component-ui");
-    });
-  })();
-</script>
+<button
+  aria-expanded="false"
+  aria-haspopup="dialog"
+  aria-label="Search"
+  class="search-control ms-auto inline-grid size-9 place-items-center p-2 text-muted transition-colors hover:text-link"
+  id="search-control"
+  type="button"
+>
+  <Icon aria-hidden="true" class="size-5" name="mdi:magnify" />
+</button>
 
-<pagefind-config
-  baseUrl={`${import.meta.env.BASE_URL}`}
-  bundle-path={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/pagefind/`}
-></pagefind-config>
-<pagefind-modal-trigger id="search" class="ms-auto" hide-shortcut compact
-></pagefind-modal-trigger>
-<pagefind-modal></pagefind-modal>
+<dialog
+  aria-labelledby="search-title"
+  class="site-search-dialog"
+  data-bundle-path={bundlePath}
+  id="search-dialog"
+>
+  <div class="site-search-header">
+    <h2 id="search-title">
+      <Icon aria-hidden="true" class="size-5" name="mdi:magnify" />
+      Search
+    </h2>
+    <button
+      aria-label="Close"
+      class="site-search-close"
+      id="search-close"
+      type="button"
+    >
+      <Icon aria-hidden="true" class="size-5" name="mdi:close" />
+    </button>
+  </div>
+
+  <form class="site-search-form" id="site-search-form" role="search">
+    <label class="sr-only" for="site-search-input">Search</label>
+    <input
+      autocomplete="off"
+      enterkeyhint="search"
+      id="site-search-input"
+      placeholder="Type here…"
+      type="text"
+    />
+    <button
+      class="site-search-clear"
+      hidden
+      id="site-search-clear"
+      type="button">Clear</button
+    >
+  </form>
+
+  <p
+    aria-live="polite"
+    class="site-search-status"
+    hidden
+    id="site-search-status"
+  >
+  </p>
+  <ol class="site-search-results" id="site-search-results"></ol>
+  <button class="site-search-more" hidden id="site-search-more" type="button"
+    >加载更多结果</button
+  >
+</dialog>
+
+<script>
+  type SearchData = {
+    excerpt: string;
+    meta?: Record<string, string>;
+    title?: string;
+    url: string;
+  };
+
+  type SearchResult = { data: () => Promise<SearchData> };
+  type Pagefind = {
+    debouncedSearch: (
+      term: string,
+      options?: Record<string, never>,
+      debounceMs?: number,
+    ) => Promise<{ results: SearchResult[] } | null>;
+  };
+
+  const pageSize = 5;
+  const button = document.getElementById(
+    "search-control",
+  ) as HTMLButtonElement | null;
+  const dialog = document.getElementById(
+    "search-dialog",
+  ) as HTMLDialogElement | null;
+  const closeButton = document.getElementById(
+    "search-close",
+  ) as HTMLButtonElement | null;
+  const form = document.getElementById(
+    "site-search-form",
+  ) as HTMLFormElement | null;
+  const input = document.getElementById(
+    "site-search-input",
+  ) as HTMLInputElement | null;
+  const clearButton = document.getElementById(
+    "site-search-clear",
+  ) as HTMLButtonElement | null;
+  const status = document.getElementById(
+    "site-search-status",
+  ) as HTMLParagraphElement | null;
+  const resultsList = document.getElementById(
+    "site-search-results",
+  ) as HTMLOListElement | null;
+  const moreButton = document.getElementById(
+    "site-search-more",
+  ) as HTMLButtonElement | null;
+
+  let pagefindPromise: Promise<Pagefind> | undefined;
+  let results: SearchResult[] = [];
+  let visibleResults = pageSize;
+  let searchId = 0;
+
+  function loadSearch(): Promise<Pagefind> {
+    pagefindPromise ??= import(
+      /* @vite-ignore */ `${dialog?.dataset.bundlePath ?? "/pagefind/"}pagefind.js`
+    ) as Promise<Pagefind>;
+    return pagefindPromise;
+  }
+
+  function setStatus(message = ""): void {
+    if (!status) return;
+    status.textContent = message;
+    status.hidden = !message;
+  }
+
+  function clearResults(): void {
+    results = [];
+    visibleResults = pageSize;
+    if (resultsList) resultsList.innerHTML = "";
+    if (moreButton) moreButton.hidden = true;
+  }
+
+  async function renderResults(): Promise<void> {
+    if (!resultsList) return;
+    resultsList.innerHTML = "";
+    const entries = await Promise.all(
+      results.slice(0, visibleResults).map((result) => result.data()),
+    );
+
+    entries.forEach((data) => {
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      const title = document.createElement("span");
+      const excerpt = document.createElement("p");
+
+      link.href = data.url;
+      link.className = "site-search-result-link";
+      title.className = "site-search-result-title";
+      title.textContent = data.meta?.title ?? data.title ?? "未命名文章";
+      excerpt.className = "site-search-result-excerpt";
+      excerpt.innerHTML = data.excerpt;
+      link.append(title, excerpt);
+      item.append(link);
+      resultsList.append(item);
+    });
+
+    if (moreButton) moreButton.hidden = results.length <= visibleResults;
+  }
+
+  async function search(term: string): Promise<void> {
+    const query = term.trim();
+    clearButton && (clearButton.hidden = !query);
+    if (!query) {
+      searchId += 1;
+      clearResults();
+      setStatus();
+      return;
+    }
+
+    const requestId = ++searchId;
+    setStatus("正在搜索…");
+    const pagefind = await loadSearch();
+    const response = await pagefind.debouncedSearch(query, {}, 180);
+    if (requestId !== searchId || !response) return;
+
+    results = response.results;
+    visibleResults = pageSize;
+    setStatus(
+      results.length
+        ? `找到 ${results.length} 个结果`
+        : `未找到与“${query}”相关的文章`,
+    );
+    await renderResults();
+  }
+
+  async function openSearch(): Promise<void> {
+    if (!dialog?.open) dialog?.showModal();
+    button?.setAttribute("aria-expanded", "true");
+    await loadSearch();
+    requestAnimationFrame(() => input?.focus());
+  }
+
+  function closeSearch(): void {
+    dialog?.close();
+  }
+
+  button?.addEventListener("pointerenter", () => void loadSearch(), {
+    once: true,
+  });
+  button?.addEventListener("focus", () => void loadSearch(), { once: true });
+  button?.addEventListener("click", () => void openSearch());
+  closeButton?.addEventListener("click", closeSearch);
+  clearButton?.addEventListener("click", () => {
+    if (input) input.value = "";
+    void search("");
+    input?.focus();
+  });
+  input?.addEventListener("input", () => void search(input.value));
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void search(input?.value ?? "");
+  });
+  moreButton?.addEventListener("click", () => {
+    visibleResults += pageSize;
+    void renderResults();
+  });
+  dialog?.addEventListener("close", () =>
+    button?.setAttribute("aria-expanded", "false"),
+  );
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) closeSearch();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const target = event.target as HTMLElement | null;
+    const isEditable = target?.matches(
+      "input, textarea, select, [contenteditable=true]",
+    );
+    if (
+      !isEditable &&
+      (event.key === "/" ||
+        ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k"))
+    ) {
+      event.preventDefault();
+      void openSearch();
+    }
+  });
+</script>

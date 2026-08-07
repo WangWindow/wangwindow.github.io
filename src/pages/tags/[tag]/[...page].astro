@@ -34,15 +34,20 @@ const meta = {
 };
 
 const paginationProps = {
+  basePath: `/tags/${encodeURIComponent(tag ?? "")}/`,
+  currentPage: page.currentPage,
+  lastPage: page.lastPage,
   ...(page.url.prev && {
     prevUrl: {
-      text: "← Previous Tags",
+      srLabel: "上一页",
+      text: "←",
       url: page.url.prev,
     },
   }),
   ...(page.url.next && {
     nextUrl: {
-      text: "Next Tags →",
+      srLabel: "下一页",
+      text: "→",
       url: page.url.next,
     },
   }),

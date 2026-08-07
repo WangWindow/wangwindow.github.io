@@ -2,26 +2,78 @@
 import type { PaginationLink } from "@/types";
 
 interface Props {
+  basePath?: string;
+  currentPage?: number;
+  lastPage?: number;
   nextUrl?: PaginationLink;
   prevUrl?: PaginationLink;
 }
 
-const { nextUrl, prevUrl } = Astro.props;
+const { basePath, currentPage, lastPage, nextUrl, prevUrl } = Astro.props;
+
+const pageNumbers = (() => {
+  if (!basePath || !currentPage || !lastPage || lastPage < 2) return [];
+  if (lastPage === 2) return [1, 2];
+  if (currentPage <= 2) return [1, 2, "…", lastPage];
+  if (currentPage >= lastPage - 1) return [1, "…", lastPage - 1, lastPage];
+  return [1, "…", currentPage, "…", lastPage];
+})();
+
+function pageUrl(page: number): string {
+  return page === 1 ? basePath! : `${basePath}${page}/`;
+}
 ---
 
 {
   (prevUrl || nextUrl) && (
-    <nav class="mt-8 flex items-center gap-x-4">
+    <nav
+      class="mt-12 flex items-center justify-center gap-x-7"
+      aria-label="分页导航"
+    >
       {prevUrl && (
-        <a class="hover:text-accent me-auto py-2" href={prevUrl.url}>
-          {prevUrl.srLabel && <span class="sr-only">{prevUrl.srLabel}</span>}
-          {prevUrl.text ? prevUrl.text : "Previous"}
+        <a
+          class="hover:text-accent inline-flex size-8 items-center justify-center text-3xl leading-none transition-colors"
+          href={prevUrl.url}
+        >
+          <span class="sr-only">
+            {prevUrl.srLabel ?? prevUrl.text ?? "上一页"}
+          </span>
+          <span aria-hidden="true">{prevUrl.text ?? "←"}</span>
         </a>
       )}
+      {pageNumbers.length > 0 && (
+        <ol
+          class="flex items-center gap-x-7"
+          aria-label={`第 ${currentPage} 页，共 ${lastPage} 页`}
+        >
+          {pageNumbers.map((page) =>
+            typeof page === "number" ? (
+              <li>
+                <a
+                  aria-current={page === currentPage ? "page" : undefined}
+                  class="text-lg transition-colors hover:text-link aria-[current=page]:text-accent"
+                  href={pageUrl(page)}
+                >
+                  {page}
+                </a>
+              </li>
+            ) : (
+              <li class="text-lg text-muted" aria-hidden="true">
+                {page}
+              </li>
+            ),
+          )}
+        </ol>
+      )}
       {nextUrl && (
-        <a class="hover:text-accent ms-auto py-2" href={nextUrl.url}>
-          {nextUrl.srLabel && <span class="sr-only">{nextUrl.srLabel}</span>}
-          {nextUrl.text ? nextUrl.text : "Next"}
+        <a
+          class="hover:text-accent inline-flex size-8 items-center justify-center text-3xl leading-none transition-colors"
+          href={nextUrl.url}
+        >
+          <span class="sr-only">
+            {nextUrl.srLabel ?? nextUrl.text ?? "下一页"}
+          </span>
+          <span aria-hidden="true">{nextUrl.text ?? "→"}</span>
         </a>
       )}
     </nav>

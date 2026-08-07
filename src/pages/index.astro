@@ -1,18 +1,17 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import PostPreview from "@/components/blog/PostPreview.astro";
-import SocialList from "@/components/SocialList.astro";
+import PostList from "@/components/blog/PostList.astro";
 import { getAllPosts } from "@/data/post";
 import PageLayout from "@/layouts/Base.astro";
 import { collectionDateSort } from "@/utils/date";
 
 // Posts
-const MAX_POSTS = 10;
+const POSTS_PER_PAGE = 10;
 const allPosts = await getAllPosts();
 const allPostsByDate = allPosts.sort(
   collectionDateSort,
 ) as CollectionEntry<"post">[];
-const latestPosts = allPostsByDate.slice(0, MAX_POSTS);
+const latestPosts = allPostsByDate.slice(0, POSTS_PER_PAGE);
 
 // Pinned Posts, set to a max of 3;
 const MAX_PINNED_POSTS = 3;
@@ -29,7 +28,6 @@ const pinnedPosts = allPostsByDate
     <p class="mb-4">
       The site is used for sharing my thoughts, notes, and projects.
     </p>
-    <SocialList />
 
     <div
       class="mt-5 rounded-xl border border-blue-300/70 bg-blue-50 p-3 text-sm text-blue-900"
@@ -52,28 +50,12 @@ const pinnedPosts = allPostsByDate
     pinnedPosts.length > 0 && (
       <section class="mt-16">
         <h2 class="title mb-6 text-xl">Pinned Posts</h2>
-        <ul class="space-y-4" role="list">
-          {pinnedPosts.map((p) => (
-            <li class="grid gap-1 sm:grid-cols-[auto_1fr]">
-              <PostPreview post={p} />
-            </li>
-          ))}
-        </ul>
+        <PostList posts={pinnedPosts} />
       </section>
     )
   }
   <section class="mt-16">
-    <h2 class="title text-accent mb-6 text-xl">
-      <a href="/posts/">Posts</a>
-    </h2>
-    <ul class="space-y-4" role="list">
-      {
-        latestPosts.map((p) => (
-          <li class="grid gap-1 sm:grid-cols-[auto_1fr]">
-            <PostPreview post={p} />
-          </li>
-        ))
-      }
-    </ul>
+    <h2 class="title text-accent mb-6 text-xl">Posts</h2>
+    <PostList posts={latestPosts} />
   </section>
 </PageLayout>

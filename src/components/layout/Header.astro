@@ -1,8 +1,11 @@
 ---
 import Search from "@/components/Search.astro";
 import ThemeToggle from "@/components/ThemeToggle.astro";
+import { Icon } from "astro-icon/components";
 import { menuLinks } from "@/site.config";
 import { siteConfig } from "../../site.config";
+
+const isHomePage = /^\/(?:\d+\/)?$/.test(Astro.url.pathname);
 ---
 
 <header
@@ -11,7 +14,7 @@ import { siteConfig } from "../../site.config";
 >
   <div class="flex sm:flex-col">
     <a
-      aria-current={Astro.url.pathname === "/" ? "page" : false}
+      aria-current={isHomePage ? "page" : false}
       class="inline-flex items-center sm:relative sm:inline-block sm:grayscale sm:hover:filter-none"
       href="/"
     >
@@ -45,7 +48,15 @@ import { siteConfig } from "../../site.config";
       {
         menuLinks.map((link) => (
           <a
-            aria-current={Astro.url.pathname === link.path ? "page" : false}
+            aria-current={
+              link.path === "/"
+                ? isHomePage
+                  ? "page"
+                  : false
+                : Astro.url.pathname === link.path
+                  ? "page"
+                  : false
+            }
             class="text-accent px-2 py-4 font-semibold sm:px-4 sm:py-0 sm:underline-offset-2 sm:hover:underline"
             href={link.path}
           >
@@ -61,44 +72,23 @@ import { siteConfig } from "../../site.config";
     <button
       aria-expanded="false"
       aria-haspopup="menu"
-      class="group relative ms-4 h-7 w-7 sm:invisible sm:hidden"
+      class="group relative ms-2 inline-grid size-9 place-items-center p-2 sm:invisible sm:hidden"
       id="toggle-navigation-menu"
       type="button"
     >
       <span class="sr-only">Open main menu</span>
-      <svg
+      <Icon
         aria-hidden="true"
-        class="absolute inset-s-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 transition-all group-aria-expanded:scale-0 group-aria-expanded:opacity-0"
-        fill="none"
-        focusable="false"
+        class="absolute size-5 transition-all group-aria-expanded:scale-0 group-aria-expanded:opacity-0"
         id="line-svg"
-        stroke="currentColor"
-        stroke-width="1.5"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M3.75 9h16.5m-16.5 6.75h16.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"></path>
-      </svg>
-      <svg
+        name="mdi:menu"
+      />
+      <Icon
         aria-hidden="true"
-        class="text-accent absolute inset-s-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 scale-0 opacity-0 transition-all group-aria-expanded:scale-100 group-aria-expanded:opacity-100"
-        class="text-accent"
-        fill="none"
-        focusable="false"
+        class="text-accent absolute size-5 scale-0 opacity-0 transition-all group-aria-expanded:scale-100 group-aria-expanded:opacity-100"
         id="cross-svg"
-        stroke="currentColor"
-        stroke-width="1.5"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M6 18L18 6M6 6l12 12"
-          stroke-linecap="round"
-          stroke-linejoin="round"></path>
-      </svg>
+        name="mdi:close"
+      />
     </button>
   </mobile-button>
 </header>

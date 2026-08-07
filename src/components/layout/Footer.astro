@@ -1,29 +1,27 @@
 ---
-import { menuLinks, siteConfig } from "@/site.config";
-
-const year = new Date().getFullYear();
+import { Icon } from "astro-icon/components";
+import { siteConfig } from "@/site.config";
 ---
 
 <footer
-  class="text-muted mt-auto flex w-full flex-col items-center justify-center gap-y-2 pt-20 pb-4 text-center align-top font-semibold sm:flex-row sm:justify-between sm:text-xs"
+  class="text-muted mt-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-10 pt-20 text-xs"
 >
-  <div class="me-0 sm:me-4">
-    &copy; {siteConfig.author}
-    {year}.<span class="inline-block">&nbsp;{siteConfig.title}</span>
-  </div>
-  <nav
-    aria-label="Footer"
-    class="sm:divide-muted flex gap-x-2 sm:gap-x-0 sm:divide-x"
+  <a
+    class="hover:text-link inline-flex items-center gap-1.5 transition-colors"
+    href="https://github.com/WangWindow"
+    rel="noreferrer"
+    target="_blank"
   >
-    {
-      menuLinks.map((link) => (
-        <a
-          class="hover:text-global-text px-4 py-2 hover:underline sm:py-0"
-          href={link.path}
-        >
-          {link.title}
-        </a>
-      ))
-    }
-  </nav>
+    <Icon aria-hidden="true" class="size-4" name="mdi:github" />
+    <span>{siteConfig.author}</span>
+  </a>
+  <span aria-hidden="true">·</span>
+  <span>
+    Powered by <a
+      class="cactus-link"
+      href="https://github.com/chrismwilliams/astro-theme-cactus"
+      rel="noreferrer"
+      target="_blank">astro-theme-cactus</a
+    >
+  </span>
 </footer>

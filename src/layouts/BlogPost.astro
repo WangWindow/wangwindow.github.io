@@ -1,5 +1,7 @@
 ---
-import { type CollectionEntry, render } from "astro:content";
+import type { MarkdownHeading } from "astro";
+import type { CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
 import Masthead from "@/components/blog/Masthead.astro";
 import TOC from "@/components/blog/TOC.astro";
 import Giscus from "@/components/Giscus.astro";
@@ -8,15 +10,15 @@ import { getPostSlug } from "@/data/post";
 import BaseLayout from "./Base.astro";
 
 interface Props {
+  headings: MarkdownHeading[];
   post: CollectionEntry<"post">;
+  readingTime: string;
 }
 
-const { post } = Astro.props;
+const { headings, post, readingTime } = Astro.props;
 const { ogImage, title, description, updatedDate, publishDate } = post.data;
 const socialImage = ogImage ?? `/og-image/${getPostSlug(post)}.png`;
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
-const { headings, remarkPluginFrontmatter } = await render(post);
-const readingTime: string = remarkPluginFrontmatter.readingTime;
 ---
 
 <BaseLayout
@@ -28,42 +30,39 @@ const readingTime: string = remarkPluginFrontmatter.readingTime;
   }}
 >
   <article class="grow wrap-break-word" data-pagefind-body>
+    {
+      description && (
+        <p class="sr-only" data-pagefind-weight="4">
+          {description}
+        </p>
+      )
+    }
     <div id="blog-hero" class="mb-12">
       <Masthead content={post} readingTime={readingTime} />
     </div>
+    <div class="mb-8 xl:hidden">
+      <TOC headings={headings} />
+    </div>
     <div
-      class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between"
+      class="prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-accent-2 prose-headings:before:absolute prose-headings:before:-ms-4 prose-headings:before:text-muted prose-headings:hover:before:text-accent sm:prose-headings:before:content-['#'] sm:prose-th:before:content-none"
     >
-      {!!headings.length && <TOC headings={headings} />}
-      <div
-        class="prose prose-sm prose-headings:font-semibold prose-headings:text-accent-2 prose-headings:before:absolute prose-headings:before:-ms-4 prose-headings:before:text-muted prose-headings:hover:before:text-accent sm:prose-headings:before:content-['#'] sm:prose-th:before:content-none"
-      >
-        <slot />
-        <Giscus />
-      </div>
+      <slot />
+      <Giscus />
     </div>
   </article>
+  <aside
+    aria-label="文章目录"
+    class="hidden xl:fixed xl:top-56 xl:right-[calc(50%+26rem)] xl:block xl:max-h-[calc(100vh-16rem)] xl:w-56 xl:overflow-y-auto"
+  >
+    <TOC headings={headings} open />
+  </aside>
   <button
     class="hover:border-link fixed inset-e-4 bottom-8 z-90 flex h-10 w-10 translate-y-28 cursor-pointer items-center justify-center rounded-full border-2 border-transparent bg-zinc-200 text-3xl opacity-0 transition-all transition-discrete duration-300 data-[show=true]:translate-y-0 data-[show=true]:opacity-100 sm:inset-e-8 sm:h-12 sm:w-12 dark:bg-zinc-700"
     data-show="false"
     id="to-top-btn"
   >
     <span class="sr-only">Back to top</span>
-    <svg
-      aria-hidden="true"
-      class="h-6 w-6"
-      fill="none"
-      focusable="false"
-      stroke="currentColor"
-      stroke-width="2"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M4.5 15.75l7.5-7.5 7.5 7.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"></path>
-    </svg>
+    <Icon aria-hidden="true" class="size-5" name="mdi:chevron-up" />
   </button>
 </BaseLayout>
 
